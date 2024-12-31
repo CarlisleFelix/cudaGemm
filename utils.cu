@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <cmath>
 #include "header/utils.cuh"
+#include "kernel/kernel.cuh"
 
 void cudaCheck(cudaError_t error, const char *file, int line) {
     if (error != cudaSuccess) {
@@ -63,13 +64,38 @@ void printMatrix(const float *A, int M, int N) {
 }
 
 bool compareMatrix(const float *A, const float *B, int M, int N) {
+    // for (int i = 0; i < 5; ++i) {
+    //     std::cout << "line " << i << std::endl;
+    //     std::cout << "A: " << std::endl;
+    //     for (int j = 0; j < 5; ++j) {
+    //         // std::cout << C[i + M * j] << " ";
+    //         // std::cout << A[i * N + j] << " ";
+    //         std::cout << std::fixed << std::setprecision(2) << A[i * N + j] << " ";
+    //     }
+    //     std::cout << std::endl;
+    //     std::cout << "B: " << std::endl;
+    //     for (int j = 0; j < 5; ++j) {
+    //         // std::cout << C[i + M * j] << " ";
+    //         // std::cout << B[i * N + j] << " ";
+    //         std::cout << std::fixed << std::setprecision(2) << B[i * N + j] << " ";
+    //     }
+    //     std::cout << std::endl;
+    // }
+
+
     for(int i = 0; i < M * N; i++) {
          if(fabs(A[i] - B[i]) > 1e-2){
-             std::cout << "loss too big at " << M << ", " << N << std::endl;
+             std::cout << "loss too big at " << i << std::endl;
              return false;
          }
     }
     return true;
+}
+
+void copyMatrix(const float *src, float *desc, int M, int N) {
+    for(int i = 0; i < M * N; i++) {
+        desc[i] = src[i];
+    }
 }
 
 LARGE_INTEGER getFrequency(){
@@ -97,6 +123,12 @@ void test_cublas(cublasHandle_t handle, int M, int N, int K, float alpha, float 
     cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, N, M, K, &alpha, B, N, A, K, &beta, C, N);
 }
 
+void test_mysgemm_v1(int M, int N, int K, float alpha, float *A, float *B, float beta, float *C) {
+    dim3 blockDim(32, 32);
+    dim3 gridDim(CEIL_DIV(M, 32), CEIL_DIV(N, 32));
+    gemmv1<<<gridDim, blockDim>>>(M, N, K, alpha, A, B, beta, C);
+}
+
 void testKernel(int kernel_num, int M, int N, int K, float alpha, float *A, float *B, float beta, float *C,
                  cublasHandle_t handle) {
     switch (kernel_num) {
@@ -104,7 +136,7 @@ void testKernel(int kernel_num, int M, int N, int K, float alpha, float *A, floa
             test_cublas(handle, M, N, K, alpha, A, B, beta, C);
         break;
         case 1:
-            // not implemented
+            test_mysgemm_v1(M, N, K, alpha, A, B, beta, C);
         break;
         case 2:
             // not implemented

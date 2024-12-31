@@ -45,6 +45,12 @@ int main(int argc, char **argv) {
     C = new float[max_size * max_size];
     C_cor = new float[max_size * max_size];
 
+    randomizeMatrix(A, max_size, max_size);
+    randomizeMatrix(B, max_size, max_size);
+    randomizeMatrix(C, max_size, max_size);
+    copyMatrix(C, C_cor, max_size, max_size);
+
+
     CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&dA), max_size * max_size * sizeof(float)));
     CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&dB), max_size * max_size * sizeof(float)));
     CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&dC), max_size * max_size * sizeof(float)));

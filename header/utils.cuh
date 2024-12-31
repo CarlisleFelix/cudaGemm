@@ -10,6 +10,7 @@ void cudaDeviceInfo();
 void randomizeMatrix(float *mat, int M, int N);
 void printMatrix(const float *mat, int M, int N);
 bool compareMatrix(const float *mat1, const float *mat2, int M, int N);
+void copyMatrix(const float *src, float *desc, int M, int N);
 
 LARGE_INTEGER getFrequency();
 LARGE_INTEGER getCurrentTick();
